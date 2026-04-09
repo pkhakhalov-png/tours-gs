@@ -1,0 +1,1189 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>tours.gs — Образовательные туры</title>
+<link href="https://fonts.googleapis.com/css2?family=Raleway:wght@300;400;500;600;700;800;900&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+* { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+
+:root {
+  --bg: #f8f6f2;
+  --bg2: #f0ede8;
+  --bg3: #e8e4de;
+  --card: #ffffff;
+  --border: #e0dbd4;
+  --gold: #8a6520;
+  --gold2: #a07830;
+  --gold3: #c8a050;
+  --text: #1a1410;
+  --text2: #6a7a8a;
+  --text3: #9a9088;
+  --red: #b03020;
+  --green: #2a7a50;
+  --blue-light: #4a7aaa;
+}
+
+html, body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'DM Sans', sans-serif;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+@keyframes fadeUp { from { opacity:0; transform:translateY(12px); } to { opacity:1; transform:translateY(0); } }
+@keyframes shimmer { 0% { background-position:-300% center; } 100% { background-position:300% center; } }
+@keyframes float { 0%,100% { transform:translateY(0); } 50% { transform:translateY(-4px); } }
+@keyframes glow { 0%,100% { box-shadow:0 4px 20px rgba(0,0,0,0.08); } 50% { box-shadow:0 8px 40px rgba(0,0,0,0.15); } }
+@keyframes grain {
+  0%,100% { transform:translate(0,0); }
+  10% { transform:translate(-1px,1px); }
+  20% { transform:translate(1px,-1px); }
+  30% { transform:translate(-1px,-1px); }
+  40% { transform:translate(1px,1px); }
+}
+
+.screen { display:none; flex-direction:column; min-height:100vh; padding-bottom:80px; animation:fadeUp 0.25s ease; }
+.screen.active { display:flex; }
+
+/* TOPBAR */
+.topbar {
+  position:sticky; top:0; z-index:100;
+  background:rgba(248,246,242,0.97);
+  backdrop-filter:blur(20px);
+  padding:14px 18px;
+  border-bottom:1px solid var(--border); box-shadow:0 1px 12px rgba(0,0,0,0.06);
+  display:flex; align-items:center; gap:12px;
+}
+.topbar-back {
+  width:34px; height:34px; background:var(--bg3); border-radius:50%;
+  display:flex; align-items:center; justify-content:center;
+  font-size:16px; cursor:pointer; flex-shrink:0; transition:opacity 0.15s;
+  border:1px solid var(--border);
+}
+.topbar-back:active { opacity:0.6; }
+.topbar-back.hidden { opacity:0; pointer-events:none; }
+.topbar-logo {
+  font-family:'Raleway', sans-serif;
+  font-size:14px; font-weight:700;
+  background:linear-gradient(90deg, #6a4510, #c8a050, #8a6520, #c8a050);
+  background-size:300% auto;
+  -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+  animation:shimmer 5s linear infinite;
+  flex:1;
+}
+.topbar-title {
+  font-family:'Raleway', sans-serif;
+  font-size:13px; font-weight:700; color:var(--text);
+  flex:1; line-height:1.3;
+}
+
+/* HOME HERO */
+.home-hero {
+  padding:0;
+  position:relative;
+}
+.home-hero-tag {
+  display:inline-flex; align-items:center; gap:6px;
+  background:rgba(201,168,76,0.12);
+  border:1px solid rgba(160,120,48,0.25);
+  border-radius:20px; padding:5px 12px;
+  font-size:11px; font-weight:700; color:var(--gold2);
+  text-transform:uppercase; letter-spacing:1px;
+  margin-bottom:14px;
+}
+.home-hero-title {
+  font-family:'Raleway', sans-serif;
+  font-size:28px; font-weight:900; line-height:1.2;
+  color:var(--text); margin-bottom:10px;
+}
+.home-hero-title span {
+  background:linear-gradient(135deg, var(--gold), var(--gold3));
+  -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+}
+.home-hero-sub {
+  font-size:13px; color:var(--text2); line-height:1.6;
+  margin-bottom:20px;
+}
+.home-stats {
+  display:grid; grid-template-columns:1fr 1fr 1fr;
+  gap:10px; margin-bottom:8px;
+}
+.stat-card {
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:14px; padding:12px;
+  text-align:center;
+}
+.stat-num {
+  font-family:'Raleway', sans-serif;
+  font-size:20px; font-weight:900; color:var(--gold2);
+  margin-bottom:2px;
+}
+.stat-label { font-size:9px; color:var(--text3); text-transform:uppercase; letter-spacing:0.5px; font-weight:700; }
+
+/* SECTION TITLE */
+.section-title {
+  font-family:'Raleway', sans-serif;
+  font-size:11px; font-weight:700;
+  color:var(--text3); text-transform:uppercase; letter-spacing:1.5px;
+  padding:22px 18px 10px;
+}
+
+/* DESTINATION CARDS */
+.destinations { padding:0 18px; display:flex; flex-direction:column; gap:12px; }
+
+.dest-card {
+  border-radius:20px; overflow:hidden; cursor:pointer;
+  position:relative; border:1px solid var(--border);
+  transition:transform 0.2s ease, box-shadow 0.3s ease;
+  animation:glow 5s ease infinite;
+}
+.dest-card:active { transform:scale(0.98); }
+.dest-card-inner {
+  height:180px; position:relative; overflow:hidden;
+  display:flex; align-items:flex-end;
+}
+.dest-card-grad {
+  position:absolute; inset:0;
+}
+.dest-china { background:linear-gradient(145deg, #1a0a0a, #3d1515, #8b2020, #c94c20); }
+.dest-africa { background:linear-gradient(145deg, #0a1a0a, #153d15, #208b40, #20c96a); }
+.dest-london { background:linear-gradient(145deg, #0a0a1a, #15153d, #20408b, #2060c9); }
+
+.dest-card-overlay {
+  position:absolute; inset:0;
+  background:linear-gradient(to top, rgba(8,12,16,0.95) 0%, rgba(8,12,16,0.3) 60%, transparent 100%);
+}
+.dest-card-body {
+  position:relative; z-index:2; padding:16px; width:100%;
+}
+.dest-flag { font-size:22px; margin-bottom:6px; }
+.dest-city {
+  font-family:'Raleway', sans-serif;
+  font-size:22px; font-weight:900; color:#fff;
+  margin-bottom:4px; line-height:1;
+}
+.dest-country { font-size:11px; color:rgba(255,255,255,0.6); font-weight:600; text-transform:uppercase; letter-spacing:1px; margin-bottom:10px; }
+.dest-meta { display:flex; gap:8px; flex-wrap:wrap; }
+.dest-tag {
+  background:rgba(255,255,255,0.12);
+  border:1px solid rgba(255,255,255,0.2);
+  border-radius:20px; padding:4px 10px;
+  font-size:10px; font-weight:700; color:rgba(255,255,255,0.9);
+}
+.dest-tag.gold { background:rgba(201,168,76,0.2); border-color:rgba(201,168,76,0.4); color:var(--gold2); }
+.dest-soon {
+  position:absolute; top:14px; right:14px; z-index:3;
+  background:rgba(0,0,0,0.5); border:1px solid rgba(255,255,255,0.2);
+  border-radius:20px; padding:4px 10px;
+  font-size:10px; font-weight:700; color:rgba(255,255,255,0.6);
+}
+
+/* EXTRA BUTTONS */
+.extra-btns { padding:0 18px; display:flex; flex-direction:column; gap:10px; margin-bottom:4px; }
+.extra-btn {
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:16px; padding:16px 18px;
+  display:flex; align-items:center; gap:14px;
+  cursor:pointer; transition:all 0.18s;
+}
+.extra-btn:active { transform:scale(0.98); background:var(--bg3); }
+.extra-btn-icon {
+  width:42px; height:42px; border-radius:12px;
+  display:flex; align-items:center; justify-content:center;
+  font-size:20px; flex-shrink:0;
+}
+.extra-btn-info { flex:1; }
+.extra-btn-title {
+  font-family:'Raleway', sans-serif;
+  font-size:13px; font-weight:700; color:var(--text);
+  margin-bottom:3px;
+}
+.extra-btn-sub { font-size:11px; color:var(--text2); line-height:1.4; }
+.extra-btn-arrow { color:var(--text3); font-size:18px; }
+
+/* ===== CITY SCREEN ===== */
+.city-hero {
+  position:relative; height:240px; overflow:hidden;
+}
+.city-hero-grad { position:absolute; inset:0; }
+.city-hero-overlay {
+  position:absolute; inset:0;
+  background:linear-gradient(to top, rgba(10,8,6,0.92) 0%, rgba(10,8,6,0.2) 70%, transparent 100%);
+}
+.city-hero-particles {
+  position:absolute; inset:0; overflow:hidden;
+}
+.city-hero-body { position:absolute; bottom:20px; left:18px; right:18px; }
+.city-hero-flag { font-size:32px; margin-bottom:8px; }
+.city-hero-name {
+  font-family:'Raleway', sans-serif;
+  font-size:36px; font-weight:900; color:#fff; line-height:1;
+  margin-bottom:6px;
+}
+.city-hero-dates { font-size:12px; color:var(--gold2); font-weight:700; letter-spacing:0.5px; }
+
+/* INFO CARDS */
+.info-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; padding:16px 18px 0; }
+.info-card {
+  background:var(--card); border:1px solid var(--border);
+  border-radius:14px; padding:14px;
+}
+.info-card-label { font-size:10px; color:var(--text3); text-transform:uppercase; letter-spacing:0.8px; font-weight:700; margin-bottom:6px; }
+.info-card-value {
+  font-family:'Raleway', sans-serif;
+  font-size:15px; font-weight:700; color:var(--text); line-height:1.3;
+}
+.info-card-value.gold { color:var(--gold2); }
+
+/* PRICE BLOCK */
+.price-block {
+  margin:14px 18px 0;
+  background:linear-gradient(135deg, #fdf8f0, #fff8ec, #fdf8f0);
+  border:1px solid rgba(160,120,48,0.25);
+  border-radius:18px; padding:18px;
+  animation:glow 4s ease infinite;
+}
+.price-block-title {
+  font-size:11px; color:var(--gold); text-transform:uppercase;
+  letter-spacing:1px; font-weight:700; margin-bottom:14px;
+}
+.price-row {
+  display:flex; align-items:center; justify-content:space-between;
+  margin-bottom:10px;
+}
+.price-row:last-child { margin-bottom:0; }
+.price-type { font-size:13px; color:var(--text2); }
+.price-amount {
+  font-family:'Raleway', sans-serif;
+  font-size:22px; font-weight:900; color:var(--gold2);
+}
+.price-divider { border:none; border-top:1px solid rgba(201,168,76,0.15); margin:12px 0; }
+
+/* INCLUDES */
+.includes { padding:0 18px; }
+.include-item {
+  display:flex; align-items:flex-start; gap:10px;
+  padding:10px 0;
+  border-bottom:1px solid var(--border); box-shadow:0 1px 12px rgba(0,0,0,0.06);
+}
+.include-item:last-child { border-bottom:none; }
+.include-check {
+  width:22px; height:22px; border-radius:50%;
+  background:rgba(76,175,125,0.15);
+  border:1px solid rgba(76,175,125,0.3);
+  display:flex; align-items:center; justify-content:center;
+  font-size:11px; flex-shrink:0; margin-top:1px;
+}
+.include-text { font-size:13px; color:var(--text); line-height:1.4; }
+
+/* PROGRAM */
+.program { padding:0 18px; }
+.day-card {
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:16px; margin-bottom:10px;
+  overflow:hidden; cursor:pointer;
+  transition:all 0.2s;
+}
+.day-card:active { transform:scale(0.99); }
+.day-header {
+  display:flex; align-items:center; gap:12px;
+  padding:14px 16px;
+}
+.day-num {
+  width:36px; height:36px; border-radius:10px;
+  background:linear-gradient(135deg, rgba(201,168,76,0.2), rgba(201,168,76,0.05));
+  border:1px solid rgba(160,120,48,0.25);
+  display:flex; align-items:center; justify-content:center;
+  font-family:'Raleway', sans-serif;
+  font-size:13px; font-weight:900; color:var(--gold2);
+  flex-shrink:0;
+}
+.day-info { flex:1; }
+.day-title {
+  font-family:'Raleway', sans-serif;
+  font-size:14px; font-weight:700; color:var(--text);
+  margin-bottom:3px;
+}
+.day-spots { font-size:11px; color:var(--text3); }
+.day-arrow { color:var(--text3); font-size:16px; transition:transform 0.2s; }
+.day-card.open .day-arrow { transform:rotate(90deg); }
+.day-body { display:none; padding:0 16px 14px; }
+.day-card.open .day-body { display:block; }
+
+.spot-item {
+  padding:10px 0;
+  border-top:1px solid var(--border);
+}
+.spot-name {
+  font-size:13px; font-weight:700; color:var(--text);
+  margin-bottom:4px; display:flex; align-items:center; gap:6px;
+}
+.spot-dot { width:6px; height:6px; border-radius:50%; background:var(--gold); flex-shrink:0; }
+.spot-desc { font-size:12px; color:var(--text2); line-height:1.5; }
+
+/* CTA */
+.cta-block {
+  margin:14px 18px 0;
+  background:linear-gradient(135deg, #0a1a2a, #0a2a1a);
+  border:1px solid rgba(168,200,232,0.2);
+  border-radius:18px; padding:20px; text-align:center;
+}
+.cta-title {
+  font-family:'Raleway', sans-serif;
+  font-size:18px; font-weight:900; color:#ffffff;
+  margin-bottom:6px;
+}
+.cta-sub { font-size:12px; color:rgba(255,255,255,0.75); margin-bottom:16px; line-height:1.5; }
+.cta-btn {
+  display:block; width:100%;
+  background:linear-gradient(135deg, var(--gold), var(--gold2));
+  border-radius:12px; padding:14px;
+  font-family:'Raleway', sans-serif;
+  font-size:15px; font-weight:700; color:#ffffff;
+  text-align:center; cursor:pointer;
+  transition:opacity 0.15s;
+  text-decoration:none;
+}
+.cta-btn:active { opacity:0.8; }
+
+/* REVIEWS */
+.review-item {
+  background:var(--card); border:1px solid var(--border);
+  border-radius:16px; padding:16px; margin-bottom:10px;
+}
+.review-header { display:flex; align-items:center; gap:10px; margin-bottom:10px; }
+.review-avatar {
+  width:38px; height:38px; border-radius:50%;
+  background:linear-gradient(135deg, var(--gold), var(--gold2));
+  display:flex; align-items:center; justify-content:center;
+  font-size:16px; flex-shrink:0; font-weight:700; color:#1a1000;
+}
+.review-name { font-size:13px; font-weight:700; color:var(--text); }
+.review-city { font-size:11px; color:var(--text3); margin-top:2px; }
+.review-stars { color:var(--gold2); font-size:12px; margin-bottom:8px; }
+.review-text { font-size:12px; color:var(--text2); line-height:1.6; }
+
+/* FAQ */
+.faq-item {
+  background:var(--card); border:1px solid var(--border);
+  border-radius:14px; margin-bottom:8px; overflow:hidden; cursor:pointer;
+}
+.faq-q {
+  padding:14px 16px; display:flex; align-items:center; justify-content:space-between;
+  font-size:13px; font-weight:700; color:var(--text); gap:10px;
+}
+.faq-arrow { color:var(--text3); font-size:14px; flex-shrink:0; transition:transform 0.2s; }
+.faq-item.open .faq-arrow { transform:rotate(90deg); }
+.faq-a { display:none; padding:0 16px 14px; font-size:12px; color:var(--text2); line-height:1.6; border-top:1px solid var(--border); padding-top:12px; }
+.faq-item.open .faq-a { display:block; }
+
+/* BOTTOM NAV */
+.bottom-nav {
+  position:fixed; bottom:0; left:0; right:0; z-index:200;
+  background:rgba(248,246,242,0.98);
+  backdrop-filter:blur(20px);
+  border-top:1px solid var(--border);
+  display:flex;
+  padding:10px 0 max(10px, env(safe-area-inset-bottom));
+}
+.nav-item {
+  flex:1; display:flex; flex-direction:column;
+  align-items:center; gap:4px; cursor:pointer; padding:4px 0;
+  transition:all 0.15s;
+}
+.nav-icon { font-size:20px; }
+.nav-label {
+  font-size:8px; font-weight:700;
+  text-transform:uppercase; letter-spacing:0.3px;
+  color:var(--text3); transition:color 0.15s;
+  font-family:'DM Sans', sans-serif;
+}
+.nav-item.active .nav-label { color:var(--gold2); }
+.nav-item:active { opacity:0.6; }
+
+
+::-webkit-scrollbar { width:0; }
+
+  /* GALLERY */
+  .gallery-wrap {
+    padding: 0 18px;
+    overflow: hidden;
+  }
+  .gallery-scroll {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    padding-bottom: 4px;
+    scrollbar-width: none;
+  }
+  .gallery-scroll::-webkit-scrollbar { display: none; }
+  .gallery-item {
+    flex-shrink: 0;
+    width: 140px;
+    height: 100px;
+    border-radius: 12px;
+    overflow: hidden;
+    position: relative;
+    border: 1px solid var(--border);
+    cursor: pointer;
+    transition: transform 0.15s;
+  }
+  .gallery-item:active { transform: scale(0.96); }
+  .gallery-item img {
+    width: 100%; height: 100%; object-fit: cover;
+  }
+  .gallery-item-placeholder {
+    width: 100%; height: 100%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 28px;
+  }
+  /* LIGHTBOX */
+  .lightbox {
+    display: none;
+    position: fixed; inset: 0; z-index: 1000;
+    background: rgba(0,0,0,0.92);
+    align-items: center; justify-content: center;
+    flex-direction: column; gap: 12px;
+  }
+  .lightbox.open { display: flex; }
+  .lightbox img {
+    max-width: 92vw; max-height: 70vh;
+    border-radius: 12px; object-fit: contain;
+  }
+  .lightbox-placeholder {
+    width: 80vw; height: 60vw; max-height: 360px;
+    border-radius: 16px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 64px;
+  }
+  .lightbox-close {
+    position: absolute; top: 20px; right: 20px;
+    width: 36px; height: 36px; border-radius: 50%;
+    background: rgba(255,255,255,0.15);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px; color: #fff; cursor: pointer;
+  }
+  .lightbox-caption {
+    font-size: 13px; color: rgba(255,255,255,0.7);
+    text-align: center; padding: 0 20px;
+  }
+
+</style>
+</head>
+<body>
+
+<!-- ===== ГЛАВНАЯ ===== -->
+<div class="screen active" id="screen-home">
+  <div class="topbar">
+    <div class="topbar-back hidden"></div>
+    <div class="topbar-logo">TOURS.GS — Образовательные туры</div>
+  </div>
+
+  <div style="margin:16px 18px 0;display:flex;align-items:center;gap:14px">
+    <div style="flex:7;min-width:0;background:rgba(248,246,242,0.75);backdrop-filter:blur(8px);border-radius:14px;padding:12px 14px">
+      <div style="font-family:'Raleway',sans-serif;font-size:20px;font-weight:900;color:var(--text);line-height:1.2;margin-bottom:8px">Обучение в <span style="background:linear-gradient(135deg,#8a6520,#c8a050);-webkit-background-clip:text;-webkit-text-fill-color:transparent">языковой среде</span></div>
+      <div style="font-size:11px;color:var(--text2);line-height:1.6">Погружение в культуру, реальная практика языка и незабываемый опыт — всё в одном туре</div>
+    </div>
+    <div style="flex:3;aspect-ratio:1/1;border-radius:50%;overflow:hidden;border:3px solid rgba(160,120,48,0.3);box-shadow:0 4px 24px rgba(160,120,48,0.2)">
+      <img src="https://static.tildacdn.com/tild3635-6436-4063-a535-353937303537/IMG_9685.JPG" style="width:100%;height:100%;object-fit:cover;object-position:center 55%">
+    </div>
+  </div>
+
+  <div class="section-title">Направления 2027</div>
+  <div class="destinations">
+
+    <div class="dest-card" onclick="openCity('shanghai')">
+      <div class="dest-card-inner">
+        <div class="dest-card-grad dest-china"></div>
+        <div class="dest-card-overlay"></div>
+        <div class="dest-card-body">
+          <div class="dest-flag">🇨🇳</div>
+          <div class="dest-city">Шанхай</div>
+          <div class="dest-country">Китай</div>
+          <div class="dest-meta">
+            <div class="dest-tag gold">Окт 2027</div>
+            <div class="dest-tag">14 ночей</div>
+            <div class="dest-tag">от $2 450</div>
+            <div class="dest-tag">15 мест</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="dest-card" onclick="openCity('capetown')">
+      <div class="dest-card-inner">
+        <div class="dest-card-grad dest-africa"></div>
+        <div class="dest-card-overlay"></div>
+        <div class="dest-card-body">
+          <div class="dest-flag">🇿🇦</div>
+          <div class="dest-city">Кейптаун</div>
+          <div class="dest-country">ЮАР · Южная Африка</div>
+          <div class="dest-meta">
+            <div class="dest-tag gold">Янв 2027</div>
+            <div class="dest-tag">14 ночей</div>
+            <div class="dest-tag">от $2 850</div>
+            <div class="dest-tag">15 мест</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="dest-card" style="opacity:0.6">
+      <div class="dest-soon">Скоро</div>
+      <div class="dest-card-inner">
+        <div class="dest-card-grad dest-london"></div>
+        <div class="dest-card-overlay"></div>
+        <div class="dest-card-body">
+          <div class="dest-flag">🇬🇧</div>
+          <div class="dest-city">Лондон</div>
+          <div class="dest-country">Великобритания</div>
+          <div class="dest-meta">
+            <div class="dest-tag">Даты уточняются</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <div style="padding:12px 18px 0;display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">
+
+    <div onclick="openScreen('screen-video')" style="border-radius:16px;overflow:hidden;cursor:pointer;position:relative;height:120px;border:1px solid rgba(255,255,255,0.06);transition:transform 0.18s" ontouchstart="this.style.transform='scale(0.96)'" ontouchend="this.style.transform='scale(1)'">
+      <div style="position:absolute;inset:0;background:linear-gradient(145deg,#6b0a0a,#c0392b)"></div>
+      <div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,0.8) 0%,rgba(0,0,0,0.1) 100%)"></div>
+      <div style="position:absolute;bottom:12px;left:10px;right:10px">
+        <div style="font-size:9px;color:rgba(255,255,255,0.55);font-weight:700;text-transform:uppercase;letter-spacing:0.8px;margin-bottom:3px">YouTube</div>
+        <div style="font-family:'Raleway',sans-serif;font-size:11px;font-weight:800;color:#fff;line-height:1.3;text-transform:uppercase;letter-spacing:0.3px">Влог Лондон 2025</div>
+      </div>
+    </div>
+
+    <div onclick="openScreen('screen-reviews')" style="border-radius:16px;overflow:hidden;cursor:pointer;position:relative;height:120px;border:1px solid rgba(255,255,255,0.06);transition:transform 0.18s" ontouchstart="this.style.transform='scale(0.96)'" ontouchend="this.style.transform='scale(1)'">
+      <div style="position:absolute;inset:0;background:linear-gradient(145deg,#6b5a0a,#c8960a)"></div>
+      <div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,0.8) 0%,rgba(0,0,0,0.1) 100%)"></div>
+      <div style="position:absolute;bottom:12px;left:10px;right:10px">
+        <div style="font-size:9px;color:rgba(255,255,255,0.55);font-weight:700;text-transform:uppercase;letter-spacing:0.8px;margin-bottom:3px">Истории</div>
+        <div style="font-family:'Raleway',sans-serif;font-size:11px;font-weight:800;color:#fff;line-height:1.3;text-transform:uppercase;letter-spacing:0.3px">Отзывы участников</div>
+      </div>
+    </div>
+
+    <div onclick="openScreen('screen-faq')" style="border-radius:16px;overflow:hidden;cursor:pointer;position:relative;height:120px;border:1px solid rgba(255,255,255,0.06);transition:transform 0.18s" ontouchstart="this.style.transform='scale(0.96)'" ontouchend="this.style.transform='scale(1)'">
+      <div style="position:absolute;inset:0;background:linear-gradient(145deg,#0a4a2a,#1a7a4a)"></div>
+      <div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,0.8) 0%,rgba(0,0,0,0.1) 100%)"></div>
+      <div style="position:absolute;bottom:12px;left:10px;right:10px">
+        <div style="font-size:9px;color:rgba(255,255,255,0.55);font-weight:700;text-transform:uppercase;letter-spacing:0.8px;margin-bottom:3px">Помощь</div>
+        <div style="font-family:'Raleway',sans-serif;font-size:11px;font-weight:800;color:#fff;line-height:1.3;text-transform:uppercase;letter-spacing:0.3px">Частые вопросы</div>
+      </div>
+    </div>
+
+  </div>
+
+
+</div>
+
+<!-- ===== ШАНХАЙ ===== -->
+<div class="screen" id="screen-shanghai">
+  <div class="topbar">
+    <div class="topbar-back" onclick="goHome()">←</div>
+    <div class="topbar-title">🇨🇳 Шанхай, Китай</div>
+  </div>
+
+  <div class="city-hero">
+    <div class="city-hero-grad dest-china"></div>
+    <div class="city-hero-overlay"></div>
+    <div class="city-hero-body">
+      <div class="city-hero-flag">🇨🇳</div>
+      <div class="city-hero-name">Шанхай</div>
+      <div class="city-hero-dates">11 октября — 24 октября 2027 · 14 ночей</div>
+    </div>
+  </div>
+
+  <div class="info-grid">
+    <div class="info-card">
+      <div class="info-card-label">Длительность</div>
+      <div class="info-card-value">2 недели<br><span style="font-size:11px;color:var(--text2)">14 ночей</span></div>
+    </div>
+    <div class="info-card">
+      <div class="info-card-label">Группа</div>
+      <div class="info-card-value">15 человек<br><span style="font-size:11px;color:var(--text2)">+ 1 группа-лидер</span></div>
+    </div>
+    <div class="info-card">
+      <div class="info-card-label">Возраст</div>
+      <div class="info-card-value">18+</div>
+    </div>
+    <div class="info-card">
+      <div class="info-card-label">Язык</div>
+      <div class="info-card-value">Китайский<br><span style="font-size:11px;color:var(--text2)">30 уроков</span></div>
+    </div>
+  </div>
+
+  <div class="price-block">
+    <div class="price-block-title">💰 Стоимость участия</div>
+    <div class="price-row">
+      <div class="price-type">🛏 Одноместный номер</div>
+      <div class="price-amount">$2 850</div>
+    </div>
+    <hr class="price-divider">
+    <div class="price-row">
+      <div class="price-type">👥 Двухместный номер</div>
+      <div class="price-amount">$2 450</div>
+    </div>
+  </div>
+
+  <div class="section-title">Что включено</div>
+  <div class="includes" style="padding:0 18px">
+    <div class="include-item"><div class="include-check">✓</div><div class="include-text">30 уроков китайского языка</div></div>
+    <div class="include-item"><div class="include-check">✓</div><div class="include-text">Проживание + завтрак (одно- или двухместные номера)</div></div>
+    <div class="include-item"><div class="include-check">✓</div><div class="include-text">Трансфер из/в аэропорт</div></div>
+    <div class="include-item"><div class="include-check">✓</div><div class="include-text">Учебные материалы</div></div>
+    <div class="include-item"><div class="include-check">✓</div><div class="include-text">Сертификат по завершению программы</div></div>
+    <div class="include-item"><div class="include-check">✓</div><div class="include-text">Культурная программа по городу</div></div>
+  </div>
+
+  <div class="section-title">Программа по дням</div>
+  <div class="program">
+
+    <div class="day-card" onclick="toggleDay(this)">
+      <div class="day-header">
+        <div class="day-num">1</div>
+        <div class="day-info">
+          <div class="day-title">Старый Шанхай</div>
+          <div class="day-spots">Yu Garden · Yuyuan Bazaar · City God Temple · The Bund</div>
+        </div>
+        <div class="day-arrow">›</div>
+      </div>
+      <div class="day-body">
+        <div class="spot-item">
+          <div class="spot-name"><div class="spot-dot"></div>Yu Garden</div>
+          <div class="spot-desc">Классический китайский сад XVI века с прудами, мостиками, драконьими стенами и павильонами. Очень атмосферно.</div>
+        </div>
+        <div class="spot-item">
+          <div class="spot-name"><div class="spot-dot"></div>Yuyuan Bazaar</div>
+          <div class="spot-desc">Старинный рынок вокруг сада с традиционной архитектурой. Много street food и сувениров.</div>
+        </div>
+        <div class="spot-item">
+          <div class="spot-name"><div class="spot-dot"></div>City God Temple</div>
+          <div class="spot-desc">Даосский храм в центре старого города. Можно увидеть как местные молятся и зажигают благовония.</div>
+        </div>
+        <div class="spot-item">
+          <div class="spot-name"><div class="spot-dot"></div>The Bund</div>
+          <div class="spot-desc">Самая известная набережная Китая: колониальная архитектура с одной стороны, футуристические небоскрёбы — с другой.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="day-card" onclick="toggleDay(this)">
+      <div class="day-header">
+        <div class="day-num">2</div>
+        <div class="day-info">
+          <div class="day-title">Центр и небоскрёбы</div>
+          <div class="day-spots">Nanjing Road · Shanghai Museum · Shanghai Tower · SWFC</div>
+        </div>
+        <div class="day-arrow">›</div>
+      </div>
+      <div class="day-body">
+        <div class="spot-item">
+          <div class="spot-name"><div class="spot-dot"></div>Nanjing Road</div>
+          <div class="spot-desc">Главная пешеходная улица города — шопинг, кафе, атмосфера мегаполиса.</div>
+        </div>
+        <div class="spot-item">
+          <div class="spot-name"><div class="spot-dot"></div>Shanghai Museum</div>
+          <div class="spot-desc">Один из лучших музеев Китая. Бесплатный вход.</div>
+        </div>
+        <div class="spot-item">
+          <div class="spot-name"><div class="spot-dot"></div>Shanghai Tower</div>
+          <div class="spot-desc">Второй по высоте небоскрёб мира. Смотровая на 118 этаже — вид на весь Шанхай и реку Huangpu.</div>
+        </div>
+        <div class="spot-item">
+          <div class="spot-name"><div class="spot-dot"></div>Shanghai World Financial Center</div>
+          <div class="spot-desc">Здание-«открывашка». Классические фото skyline делаются именно отсюда.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="day-card" onclick="toggleDay(this)">
+      <div class="day-header">
+        <div class="day-num">3</div>
+        <div class="day-info">
+          <div class="day-title">French Concession</div>
+          <div class="day-spots">Французская концессия · Fuxing Park · Xintiandi</div>
+        </div>
+        <div class="day-arrow">›</div>
+      </div>
+      <div class="day-body">
+        <div class="spot-item">
+          <div class="spot-name"><div class="spot-dot"></div>French Concession</div>
+          <div class="spot-desc">Самый европейский район Шанхая: платаны, виллы, кафе, галереи.</div>
+        </div>
+        <div class="spot-item">
+          <div class="spot-name"><div class="spot-dot"></div>Fuxing Park</div>
+          <div class="spot-desc">Очень локальный опыт: танцующие пенсионеры, тайцзи, карточные игры.</div>
+        </div>
+        <div class="spot-item">
+          <div class="spot-name"><div class="spot-dot"></div>Xintiandi</div>
+          <div class="spot-desc">Реконструированный квартал shikumen домов: рестораны, бары, террасы.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="day-card" onclick="toggleDay(this)">
+      <div class="day-header">
+        <div class="day-num">4</div>
+        <div class="day-info">
+          <div class="day-title">Jing'an</div>
+          <div class="day-spots">Jing'an Temple · Natural History Museum</div>
+        </div>
+        <div class="day-arrow">›</div>
+      </div>
+      <div class="day-body">
+        <div class="spot-item">
+          <div class="spot-name"><div class="spot-dot"></div>Jing'an Temple</div>
+          <div class="spot-desc">Буддийский храм среди небоскрёбов. Красивый контраст старого и нового Китая: золотые статуи, огромные курильницы.</div>
+        </div>
+        <div class="spot-item">
+          <div class="spot-name"><div class="spot-dot"></div>Shanghai Natural History Museum</div>
+          <div class="spot-desc">Современный музей: динозавры, природа Китая, интерактивные экспозиции. Интересна и сама архитектура.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="day-card" onclick="toggleDay(this)">
+      <div class="day-header">
+        <div class="day-num">5</div>
+        <div class="day-info">
+          <div class="day-title">Искусство</div>
+          <div class="day-spots">M50 Art District · Power Station of Art</div>
+        </div>
+        <div class="day-arrow">›</div>
+      </div>
+      <div class="day-body">
+        <div class="spot-item">
+          <div class="spot-name"><div class="spot-dot"></div>M50 Art District</div>
+          <div class="spot-desc">Бывшие фабрики, превращённые в галереи современного искусства. Выставки, арт, кофе в индустриальной атмосфере.</div>
+        </div>
+        <div class="spot-item">
+          <div class="spot-name"><div class="spot-dot"></div>Power Station of Art</div>
+          <div class="spot-desc">Музей современного искусства в бывшей электростанции.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="day-card" onclick="toggleDay(this)">
+      <div class="day-header">
+        <div class="day-num">6</div>
+        <div class="day-info">
+          <div class="day-title">Water Town</div>
+          <div class="day-spots">Zhujiajiao — «Венеция Шанхая»</div>
+        </div>
+        <div class="day-arrow">›</div>
+      </div>
+      <div class="day-body">
+        <div class="spot-item">
+          <div class="spot-name"><div class="spot-dot"></div>Zhujiajiao</div>
+          <div class="spot-desc">«Венеция Шанхая»: каналы, лодки, каменные мосты, чайные. Один из самых живописных дней программы.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="day-card" onclick="toggleDay(this)">
+      <div class="day-header">
+        <div class="day-num">7</div>
+        <div class="day-info">
+          <div class="day-title">Аутентичный Китай</div>
+          <div class="day-spots">Longhua Temple · Propaganda Poster Art Centre</div>
+        </div>
+        <div class="day-arrow">›</div>
+      </div>
+      <div class="day-body">
+        <div class="spot-item">
+          <div class="spot-name"><div class="spot-dot"></div>Longhua Temple</div>
+          <div class="spot-desc">Самый старый храм Шанхая. Более аутентичный и менее туристический.</div>
+        </div>
+        <div class="spot-item">
+          <div class="spot-name"><div class="spot-dot"></div>Shanghai Propaganda Poster Art Centre</div>
+          <div class="spot-desc">Необычный музей: плакаты эпохи Mao, культурная революция, политическое искусство.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="day-card" onclick="toggleDay(this)">
+      <div class="day-header">
+        <div class="day-num">8</div>
+        <div class="day-info">
+          <div class="day-title">Парки</div>
+          <div class="day-spots">Century Park</div>
+        </div>
+        <div class="day-arrow">›</div>
+      </div>
+      <div class="day-body">
+        <div class="spot-item">
+          <div class="spot-name"><div class="spot-dot"></div>Century Park</div>
+          <div class="spot-desc">Самый большой парк города: озёра, велосипеды, пикники. День для отдыха и погружения в местную жизнь.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="day-card" onclick="toggleDay(this)">
+      <div class="day-header">
+        <div class="day-num">9</div>
+        <div class="day-info">
+          <div class="day-title">Атмосферные кварталы</div>
+          <div class="day-spots">Tianzifang</div>
+        </div>
+        <div class="day-arrow">›</div>
+      </div>
+      <div class="day-body">
+        <div class="spot-item">
+          <div class="spot-name"><div class="spot-dot"></div>Tianzifang</div>
+          <div class="spot-desc">Лабиринт узких улочек: дизайнерские магазины, craft, кафе. Идеальное место для фото и шопинга.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="day-card" onclick="toggleDay(this)">
+      <div class="day-header">
+        <div class="day-num">10</div>
+        <div class="day-info">
+          <div class="day-title">Символы города</div>
+          <div class="day-spots">Oriental Pearl Tower</div>
+        </div>
+        <div class="day-arrow">›</div>
+      </div>
+      <div class="day-body">
+        <div class="spot-item">
+          <div class="spot-name"><div class="spot-dot"></div>Oriental Pearl Tower</div>
+          <div class="spot-desc">Телебашня с розовыми сферами — символ города. Стеклянный пол, музей истории Шанхая, виды на The Bund.</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+
+  <div class="section-title">Фотографии</div>
+  <div class="gallery-wrap">
+    <div class="gallery-scroll">
+      <div class="gallery-item" onclick="openLightbox('🏮','Старый Шанхай — Yu Garden')">
+        <div class="gallery-item-placeholder" style="background:linear-gradient(145deg,#3d1515,#8b2020)">🏮</div>
+      </div>
+      <div class="gallery-item" onclick="openLightbox('🌃','The Bund ночью')">
+        <div class="gallery-item-placeholder" style="background:linear-gradient(145deg,#151528,#2a2a5a)">🌃</div>
+      </div>
+      <div class="gallery-item" onclick="openLightbox('🗼','Shanghai Tower')">
+        <div class="gallery-item-placeholder" style="background:linear-gradient(145deg,#1a2a1a,#2a5a3a)">🗼</div>
+      </div>
+      <div class="gallery-item" onclick="openLightbox('🛶','Zhujiajiao — водный город')">
+        <div class="gallery-item-placeholder" style="background:linear-gradient(145deg,#1a1a3a,#2a4a8a)">🛶</div>
+      </div>
+      <div class="gallery-item" onclick="openLightbox('🍜','Street food Шанхай')">
+        <div class="gallery-item-placeholder" style="background:linear-gradient(145deg,#3a2010,#8a5020)">🍜</div>
+      </div>
+      <div class="gallery-item" onclick="openLightbox('🎨','M50 Art District')">
+        <div class="gallery-item-placeholder" style="background:linear-gradient(145deg,#2a102a,#6a2a6a)">🎨</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="cta-block">
+    <div class="cta-title">Готов присоединиться?</div>
+    <div class="cta-sub">Осталось ограниченное количество мест. Напиши нам и мы ответим на все вопросы.</div>
+    <a class="cta-btn" href="https://t.me/goandstudy" target="_blank">Записаться на тур →</a>
+  </div>
+</div>
+
+
+<!-- ===== КЕЙПТАУН ===== -->
+<div class="screen" id="screen-capetown">
+  <div class="topbar">
+    <div class="topbar-back" onclick="goHome()">←</div>
+    <div class="topbar-title">🇿🇦 Кейптаун, ЮАР</div>
+  </div>
+
+  <div class="city-hero">
+    <div class="city-hero-grad dest-africa"></div>
+    <div class="city-hero-overlay"></div>
+    <div class="city-hero-body">
+      <div class="city-hero-flag">🇿🇦</div>
+      <div class="city-hero-name">Кейптаун</div>
+      <div class="city-hero-dates">16 января — 30 января 2027 · 14 ночей</div>
+    </div>
+  </div>
+
+  <div class="info-grid">
+    <div class="info-card">
+      <div class="info-card-label">Длительность</div>
+      <div class="info-card-value">2 недели<br><span style="font-size:11px;color:var(--text2)">Сб → Сб</span></div>
+    </div>
+    <div class="info-card">
+      <div class="info-card-label">Группа</div>
+      <div class="info-card-value">15 человек<br><span style="font-size:11px;color:var(--text2)">+ 1 группа-лидер</span></div>
+    </div>
+    <div class="info-card">
+      <div class="info-card-label">Возраст</div>
+      <div class="info-card-value">18+</div>
+    </div>
+    <div class="info-card">
+      <div class="info-card-label">Язык</div>
+      <div class="info-card-value">Английский<br><span style="font-size:11px;color:var(--text2)">20 уроков</span></div>
+    </div>
+  </div>
+
+  <div class="price-block">
+    <div class="price-block-title">💰 Стоимость участия</div>
+    <div class="price-row">
+      <div class="price-type">🛏 Одноместный номер</div>
+      <div class="price-amount">$3 750</div>
+    </div>
+    <hr class="price-divider">
+    <div class="price-row">
+      <div class="price-type">👥 Двухместный номер</div>
+      <div class="price-amount">$2 850</div>
+    </div>
+  </div>
+
+  <div class="section-title">Что включено</div>
+  <div class="includes" style="padding:0 18px">
+    <div class="include-item"><div class="include-check">✓</div><div class="include-text">20 уроков английского языка</div></div>
+    <div class="include-item"><div class="include-check">✓</div><div class="include-text">Проживание в отеле 3★ + завтрак. Доступ к инфраструктуре соседнего отеля 4★ той же сети — бассейн, тренажёрка, rooftop</div></div>
+    <div class="include-item"><div class="include-check">✓</div><div class="include-text">Трансфер из/в аэропорт</div></div>
+    <div class="include-item"><div class="include-check">✓</div><div class="include-text">Учебные материалы</div></div>
+    <div class="include-item"><div class="include-check">✓</div><div class="include-text">Доступ к платформе онлайн-образования EC English</div></div>
+    <div class="include-item"><div class="include-check">✓</div><div class="include-text">Сертификат по завершению программы</div></div>
+    <div class="include-item"><div class="include-check">✓</div><div class="include-text">Программа и активности от колледжа</div></div>
+    <div class="include-item"><div class="include-check">✓</div><div class="include-text">Культурная программа по городу</div></div>
+  </div>
+
+  <div class="section-title">О городе</div>
+  <div style="padding:0 18px">
+    <div style="background:var(--card);border:1px solid var(--border);border-radius:16px;padding:16px;margin-bottom:10px">
+      <div style="font-size:13px;color:var(--text2);line-height:1.7">
+        Кейптаун — один из красивейших городов мира. Океан, горы, виноградники и невероятное разнообразие культур. Январь — разгар южноафриканского лета: +25°C, длинные дни и идеальная погода для активного отдыха.
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
+      <div style="background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px;text-align:center">
+        <div style="font-size:24px;margin-bottom:6px">🏔</div>
+        <div style="font-family:'Raleway',sans-serif;font-size:11px;font-weight:700;color:var(--text)">Table Mountain</div>
+        <div style="font-size:10px;color:var(--text2);margin-top:3px">Символ города</div>
+      </div>
+      <div style="background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px;text-align:center">
+        <div style="font-size:24px;margin-bottom:6px">🌊</div>
+        <div style="font-family:'Raleway',sans-serif;font-size:11px;font-weight:700;color:var(--text)">Два океана</div>
+        <div style="font-size:10px;color:var(--text2);margin-top:3px">Атлантический и Индийский</div>
+      </div>
+      <div style="background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px;text-align:center">
+        <div style="font-size:24px;margin-bottom:6px">🍷</div>
+        <div style="font-family:'Raleway',sans-serif;font-size:11px;font-weight:700;color:var(--text)">Виноградники</div>
+        <div style="font-size:10px;color:var(--text2);margin-top:3px">Stellenbosch · Franschhoek</div>
+      </div>
+      <div style="background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px;text-align:center">
+        <div style="font-size:24px;margin-bottom:6px">🐧</div>
+        <div style="font-family:'Raleway',sans-serif;font-size:11px;font-weight:700;color:var(--text)">Дикая природа</div>
+        <div style="font-size:10px;color:var(--text2);margin-top:3px">Пингвины · Киты · Сафари</div>
+      </div>
+    </div>
+    <div style="background:linear-gradient(135deg,rgba(42,122,80,0.08),rgba(42,122,80,0.04));border:1px solid rgba(42,122,80,0.2);border-radius:14px;padding:14px;margin-bottom:10px">
+      <div style="font-size:11px;font-weight:700;color:#2a7a50;text-transform:uppercase;letter-spacing:0.8px;margin-bottom:6px">🌿 Культурная программа</div>
+      <div style="font-size:12px;color:var(--text2);line-height:1.6">Детальная программа формируется. Мы едем в начале года — самый лучший сезон чтобы увидеть самое интересное что есть в Кейптауне.</div>
+    </div>
+  </div>
+
+
+  <div class="section-title">Фотографии</div>
+  <div class="gallery-wrap">
+    <div class="gallery-scroll">
+      <div class="gallery-item" onclick="openLightbox('🏔','Table Mountain')">
+        <div class="gallery-item-placeholder" style="background:linear-gradient(145deg,#0a2a1a,#1a5a2a)">🏔</div>
+      </div>
+      <div class="gallery-item" onclick="openLightbox('🌊','Clifton Beach')">
+        <div class="gallery-item-placeholder" style="background:linear-gradient(145deg,#0a1a3a,#1a4a8a)">🌊</div>
+      </div>
+      <div class="gallery-item" onclick="openLightbox('🐧','Пингвины Boulders Beach')">
+        <div class="gallery-item-placeholder" style="background:linear-gradient(145deg,#1a1a2a,#3a3a5a)">🐧</div>
+      </div>
+      <div class="gallery-item" onclick="openLightbox('🍷','Виноградники Stellenbosch')">
+        <div class="gallery-item-placeholder" style="background:linear-gradient(145deg,#2a0a1a,#6a2a4a)">🍷</div>
+      </div>
+      <div class="gallery-item" onclick="openLightbox('🌅','Sunset над океаном')">
+        <div class="gallery-item-placeholder" style="background:linear-gradient(145deg,#3a1a0a,#8a4a10)">🌅</div>
+      </div>
+      <div class="gallery-item" onclick="openLightbox('🏙','Кейптаун с высоты')">
+        <div class="gallery-item-placeholder" style="background:linear-gradient(145deg,#0a2a0a,#1a6a2a)">🏙</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="cta-block">
+    <div class="cta-title">Хочешь в Кейптаун?</div>
+    <div class="cta-sub">Январь 2027 — разгар лета в ЮАР. Осталось ограниченное количество мест.</div>
+    <a class="cta-btn" href="https://t.me/goandstudy" target="_blank">Записаться на тур →</a>
+  </div>
+</div>
+
+<!-- ===== ВИДЕО ===== -->
+<div class="screen" id="screen-video">
+  <div class="topbar">
+    <div class="topbar-back" onclick="goHome()">←</div>
+    <div class="topbar-title">Лондон 2025 — Влог</div>
+  </div>
+  <div style="padding:16px 18px 0">
+
+    <div style="border-radius:18px;overflow:hidden;border:1px solid var(--border);margin-bottom:14px">
+      <div style="background:linear-gradient(145deg,#6b0a0a,#c0392b,#8b1a1a);height:200px;display:flex;align-items:flex-end;padding:20px;position:relative">
+        <div style="position:absolute;top:16px;left:16px;background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.25);border-radius:20px;padding:4px 12px;font-size:10px;font-weight:700;color:#fff;text-transform:uppercase;letter-spacing:0.8px">YouTube</div>
+        <div>
+          <div style="font-family:'Raleway',sans-serif;font-size:18px;font-weight:900;color:#fff;line-height:1.2;margin-bottom:4px">Большой влог с нашей поездки в Лондон 2025</div>
+          <div style="font-size:11px;color:rgba(255,255,255,0.65)">Go And Study · 2025</div>
+        </div>
+      </div>
+      <div style="background:var(--card);padding:16px">
+        <div style="font-size:13px;color:var(--text);font-weight:600;line-height:1.6;margin-bottom:8px">Как это было: 2 недели в Лондоне вместе с нашей группой</div>
+        <div style="font-size:12px;color:var(--text2);line-height:1.7;margin-bottom:16px">Жизнь в студенческой резиденции, занятия в языковой школе, экскурсии по Лондону, вечера с участниками из разных стран — всё это в одном большом влоге. Смотри как проходит настоящий образовательный тур.</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px">
+          <div style="background:var(--bg2);border-radius:10px;padding:10px;text-align:center">
+            <div style="font-family:'Raleway',sans-serif;font-size:16px;font-weight:900;color:var(--text)">2 нед</div>
+            <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;margin-top:2px">Длительность</div>
+          </div>
+          <div style="background:var(--bg2);border-radius:10px;padding:10px;text-align:center">
+            <div style="font-family:'Raleway',sans-serif;font-size:16px;font-weight:900;color:var(--text)">Лондон</div>
+            <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;margin-top:2px">Направление</div>
+          </div>
+        </div>
+        <a href="https://youtube.com/@goandstudy" target="_blank" style="display:block;background:linear-gradient(135deg,#c0392b,#e74c3c);border-radius:12px;padding:14px;text-align:center;font-family:'Raleway',sans-serif;font-size:14px;font-weight:800;color:#fff;text-decoration:none;letter-spacing:0.3px">Смотреть на YouTube</a>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ===== ОТЗЫВЫ ===== -->
+<div class="screen" id="screen-reviews">
+  <div class="topbar">
+    <div class="topbar-back" onclick="goHome()">←</div>
+    <div class="topbar-title">⭐ Отзывы участников</div>
+  </div>
+  <div style="padding:16px 18px 0">
+    <div class="review-item">
+      <div class="review-header">
+        <div class="review-avatar">А</div>
+        <div><div class="review-name">Анастасия К.</div><div class="review-city">Тур в Лондон, 2025</div></div>
+      </div>
+      <div class="review-stars">★★★★★</div>
+      <div class="review-text">Это был лучший опыт в моей жизни. За две недели я не только улучшила английский, но и нашла друзей со всего мира. Организация на высшем уровне — всё продумано до мелочей.</div>
+    </div>
+    <div class="review-item">
+      <div class="review-header">
+        <div class="review-avatar" style="background:linear-gradient(135deg,#4caf7d,#2d8a5a)">М</div>
+        <div><div class="review-name">Максим Р.</div><div class="review-city">Тур в Лондон, 2025</div></div>
+      </div>
+      <div class="review-stars">★★★★★</div>
+      <div class="review-text">Go And Study — это не просто языковые курсы. Это полное погружение в культуру. Культурная программа была потрясающей, а группа-лидер всегда был рядом если что-то нужно.</div>
+    </div>
+    <div class="review-item">
+      <div class="review-header">
+        <div class="review-avatar" style="background:linear-gradient(135deg,#4c7caf,#2d5a8a)">С</div>
+        <div><div class="review-name">София Н.</div><div class="review-city">Тур в Лондон, 2025</div></div>
+      </div>
+      <div class="review-stars">★★★★★</div>
+      <div class="review-text">Боялась ехать одна, но команда Go And Study сделала всё чтобы я чувствовала себя в безопасности. Уже записалась на Шанхай 2027!</div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== FAQ ===== -->
+<div class="screen" id="screen-faq">
+  <div class="topbar">
+    <div class="topbar-back" onclick="goHome()">←</div>
+    <div class="topbar-title">❓ Частые вопросы</div>
+  </div>
+  <div style="padding:16px 18px 0">
+    <div class="faq-item" onclick="toggleFaq(this)">
+      <div class="faq-q">Нужна ли виза в Китай? <div class="faq-arrow">›</div></div>
+      <div class="faq-a">Гражданам России виза в Китай нужна. Мы помогаем с оформлением документов и даём подробную инструкцию. Срок оформления — 5-10 рабочих дней.</div>
+    </div>
+    <div class="faq-item" onclick="toggleFaq(this)">
+      <div class="faq-q">Что не включено в стоимость? <div class="faq-arrow">›</div></div>
+      <div class="faq-a">Авиабилеты, страховка, личные расходы, обеды и ужины (только завтрак включён), входные билеты в музеи если не указано иное.</div>
+    </div>
+    <div class="faq-item" onclick="toggleFaq(this)">
+      <div class="faq-q">Какой уровень китайского нужен? <div class="faq-arrow">›</div></div>
+      <div class="faq-a">Никакого! Программа рассчитана на начинающих. 30 уроков дадут базу для общения и понимания культуры.</div>
+    </div>
+    <div class="faq-item" onclick="toggleFaq(this)">
+      <div class="faq-q">Как забронировать место? <div class="faq-arrow">›</div></div>
+      <div class="faq-a">Напиши нам в Telegram @goandstudy. Для бронирования нужен депозит 20% от стоимости тура.</div>
+    </div>
+    <div class="faq-item" onclick="toggleFaq(this)">
+      <div class="faq-q">Можно ли поехать одному? <div class="faq-arrow">›</div></div>
+      <div class="faq-a">Конечно! Большинство участников едут самостоятельно. Группа быстро становится командой — это часть опыта.</div>
+    </div>
+    <div class="faq-item" onclick="toggleFaq(this)">
+      <div class="faq-q">Есть ли рассрочка оплаты? <div class="faq-arrow">›</div></div>
+      <div class="faq-a">Да, можно оплатить в 2-3 части. Уточни условия при бронировании.</div>
+    </div>
+  </div>
+</div>
+
+<!-- BOTTOM NAV -->
+<nav class="bottom-nav" style="padding:10px 18px max(10px,env(safe-area-inset-bottom))">
+  <a href="https://t.me/goandstudy" target="_blank" style="display:flex;align-items:center;justify-content:center;gap:10px;width:100%;background:linear-gradient(135deg,#8a6520,#c8a050,#a07830);border-radius:14px;padding:15px;text-decoration:none;transition:opacity 0.15s" ontouchstart="this.style.opacity='0.85'" ontouchend="this.style.opacity='1'">
+    <span style="font-family:'Raleway',sans-serif;font-size:15px;font-weight:800;color:#fff;letter-spacing:0.3px">Записаться на тур</span>
+    <span style="font-size:14px;color:rgba(255,255,255,0.8)">→</span>
+  </a>
+</nav>
+
+<script>
+
+function openLightbox(emoji, caption) {
+  const lb = document.getElementById('lightbox');
+  const content = document.getElementById('lightbox-content');
+  const cap = document.getElementById('lightbox-caption');
+  content.textContent = emoji;
+  content.style.fontSize = '64px';
+  cap.textContent = caption;
+  lb.classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function closeLightbox() {
+  document.getElementById('lightbox').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+function openCity(city) {
+  if (city === 'shanghai') openScreen('screen-shanghai');
+  if (city === 'capetown') openScreen('screen-capetown');
+}
+
+function openScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  const navMap = { 'screen-home':'nav-home','screen-reviews':'nav-reviews','screen-faq':'nav-faq' };
+  if (navMap[id]) document.getElementById(navMap[id]).classList.add('active');
+  window.scrollTo(0,0);
+}
+
+function goHome() { openScreen('screen-home'); }
+
+function toggleDay(card) {
+  card.classList.toggle('open');
+}
+
+function toggleFaq(item) {
+  item.classList.toggle('open');
+}
+</script>
+
+<!-- LIGHTBOX -->
+<div class="lightbox" id="lightbox" onclick="closeLightbox()">
+  <div class="lightbox-close" onclick="closeLightbox()">✕</div>
+  <div id="lightbox-content" class="lightbox-placeholder" style="background:var(--bg3)"></div>
+  <div class="lightbox-caption" id="lightbox-caption"></div>
+</div>
+</body>
+</html>
